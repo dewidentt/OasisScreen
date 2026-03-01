@@ -11,6 +11,22 @@ namespace ScreenCaptureApp
 		[STAThread]
 		private static void Main()
 		{
+			Application.EnableVisualStyles();
+			Application.SetCompatibleTextRenderingDefault(false);
+
+			Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
+			Application.ThreadException += (s, e) =>
+			{
+				MessageBox.Show("Ошибка: " + e.Exception.Message + "\n" + e.Exception.StackTrace,
+					"OasisScreen — Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			};
+			AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+			{
+				var ex = e.ExceptionObject as Exception;
+				MessageBox.Show("Критическая ошибка: " + (ex?.Message ?? e.ExceptionObject.ToString()),
+					"OasisScreen — Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			};
+
 			bool createdNew;
 			mutex = new Mutex(true, "ScreenCaptureApp_SingleInstance", out createdNew);
 			if (!createdNew)
@@ -18,8 +34,7 @@ namespace ScreenCaptureApp
 				MessageBox.Show("Приложение уже запущено.", "OasisScreen", MessageBoxButtons.OK, MessageBoxIcon.Information);
 				return;
 			}
-			Application.EnableVisualStyles();
-			Application.SetCompatibleTextRenderingDefault(false);
+
 			Application.Run(new MainForm());
 		}
 	}

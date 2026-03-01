@@ -46,9 +46,16 @@ namespace ScreenCaptureApp
 			this.trayMenu.Items.Add(new ToolStripSeparator());
 			this.trayMenu.Items.Add("\u274C  Выход", null, new EventHandler(this.OnExitClick));
 
+			Icon appIcon;
+			string icoPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "oasis.ico");
+			if (File.Exists(icoPath))
+				appIcon = new Icon(icoPath);
+			else
+				appIcon = Icon.ExtractAssociatedIcon(Application.ExecutablePath);
+
 			this.trayIcon = new NotifyIcon
 			{
-				Icon = new Icon(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "oasis.ico")),
+				Icon = appIcon,
 				ContextMenuStrip = this.trayMenu,
 				Visible = true,
 				Text = "OasisScreen"
@@ -114,12 +121,20 @@ namespace ScreenCaptureApp
 
 		private void UpdateRunAtStartup()
 		{
-			using (var key = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true))
+			try
 			{
-				if (this.runAtStartup)
-				key.SetValue("OasisScreen", Application.ExecutablePath);
-				else
-					key.DeleteValue("OasisScreen", false);
+				using (var key = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true))
+				{
+					if (key == null) return;
+					if (this.runAtStartup)
+						key.SetValue("OasisScreen", Application.ExecutablePath);
+					else
+						key.DeleteValue("OasisScreen", false);
+				}
+			}
+			catch (Exception)
+			{
+				// Ignore registry access errors
 			}
 		}
 

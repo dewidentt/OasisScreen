@@ -9,9 +9,12 @@ namespace ScreenCaptureApp
 	{
 		public static event EventHandler<HotKeyEventArgs> HotKeyPressed;
 
+		private static Form messageForm;
+
 		public static void Initialize()
 		{
-			hWnd = new Form().Handle;
+			messageForm = new Form();
+			hWnd = messageForm.Handle;
 			Application.AddMessageFilter(new HotKeyMessageFilter());
 		}
 
