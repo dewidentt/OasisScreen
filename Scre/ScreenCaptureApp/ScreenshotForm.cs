@@ -4,6 +4,7 @@ using System.Drawing.Drawing2D;
 using System.Collections.Generic;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.Win32;
 
@@ -98,6 +99,9 @@ namespace ScreenCaptureApp
 			this.magnifierButton = this.CreateToolButton("\ud83d\udd0d");
 			this.magnifierButton.Click += this.MagnifierButton_Click;
 
+			this.ocrButton = this.CreateToolButton("\ud83d\udd24");
+			this.ocrButton.Click += this.OcrButton_Click;
+
 			this.mosaicButton = this.CreateToolButton("\ud83d\udfe5");
 			this.mosaicButton.Click += this.MosaicButton_Click;
 
@@ -137,6 +141,7 @@ namespace ScreenCaptureApp
 			this.toolTip.SetToolTip(this.colorButton, "\u0426\u0432\u0435\u0442");
 			this.toolTip.SetToolTip(this.saveButton, "\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c");
 			this.toolTip.SetToolTip(this.magnifierButton, "\u041b\u0443\u043f\u0430");
+			this.toolTip.SetToolTip(this.ocrButton, "\u0420\u0430\u0441\u043f\u043e\u0437\u043d\u0430\u0442\u044c \u0442\u0435\u043a\u0441\u0442");
 
 			int btnW = 40;
 			int btnGap = 3;
@@ -150,6 +155,7 @@ namespace ScreenCaptureApp
 			this.textButton.Location = new Point(pad + col * (btnW + btnGap), pad); col++;
 			this.colorButton.Location = new Point(pad + col * (btnW + btnGap), pad); col++;
 			this.magnifierButton.Location = new Point(pad + col * (btnW + btnGap), pad); col++;
+			this.ocrButton.Location = new Point(pad + col * (btnW + btnGap), pad); col++;
 			this.saveButton.Location = new Point(pad + col * (btnW + btnGap), pad); col++;
 
 			int totalBtns = col;
@@ -180,6 +186,7 @@ namespace ScreenCaptureApp
 			this.toolbarPanel.Controls.Add(this.textButton);
 			this.toolbarPanel.Controls.Add(this.colorButton);
 			this.toolbarPanel.Controls.Add(this.magnifierButton);
+			this.toolbarPanel.Controls.Add(this.ocrButton);
 			this.toolbarPanel.Controls.Add(this.saveButton);
 			base.Controls.Add(this.toolbarPanel);
 		}
@@ -677,6 +684,84 @@ namespace ScreenCaptureApp
 			this.UpdateCursor();
 		}
 
+		private async void OcrButton_Click(object sender, EventArgs e)
+		{
+			if (this.drawingBitmap == null) return;
+
+			this.ocrButton.Enabled = false;
+			try
+			{
+				using (var selectedBitmap = new Bitmap(this.selectionRect.Width, this.selectionRect.Height))
+				{
+					using (var g = Graphics.FromImage(selectedBitmap))
+					{
+						g.DrawImage(this.originalScreenshot, 0, 0, this.selectionRect, GraphicsUnit.Pixel);
+					}
+
+					string text = await OcrHelper.RecognizeTextAsync(selectedBitmap);
+
+					if (string.IsNullOrWhiteSpace(text))
+					{
+						this.ShowOcrNotification("\u0422\u0435\u043a\u0441\u0442 \u043d\u0435 \u0440\u0430\u0441\u043f\u043e\u0437\u043d\u0430\u043d");
+						return;
+					}
+
+					if (this.saveToClipboard)
+					{
+						var data = new DataObject();
+						data.SetText(text);
+						using (var imgCopy = new Bitmap(selectedBitmap))
+						{
+							data.SetImage(imgCopy);
+							Clipboard.SetDataObject(data, true);
+						}
+						this.ShowOcrNotification("\u0422\u0435\u043a\u0441\u0442 \u0438 \u0441\u043d\u0438\u043c\u043e\u043a \u0441\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u044b");
+					}
+					else
+					{
+						Clipboard.SetText(text);
+						this.ShowOcrNotification("\u0422\u0435\u043a\u0441\u0442 \u0441\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d \u0432 \u0431\u0443\u0444\u0435\u0440");
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				this.ShowOcrNotification("\u041e\u0448\u0438\u0431\u043a\u0430 OCR: " + ex.Message);
+			}
+			finally
+			{
+				this.ocrButton.Enabled = true;
+			}
+		}
+
+		private void ShowOcrNotification(string message)
+		{
+			var label = new Label
+			{
+				Text = "  " + message + "  ",
+				BackColor = Color.FromArgb(45, 45, 48),
+				ForeColor = Color.FromArgb(220, 220, 220),
+				Font = new Font("Segoe UI", 10f),
+				AutoSize = true,
+				Padding = new Padding(10, 6, 10, 6)
+			};
+			label.Location = new Point(
+				this.toolbarPanel.Left,
+				this.toolbarPanel.Top - label.PreferredHeight - 6);
+			this.Controls.Add(label);
+			label.BringToFront();
+
+			var timer = new Timer { Interval = 2500 };
+			timer.Tick += delegate
+			{
+				timer.Stop();
+				this.Controls.Remove(label);
+				label.Dispose();
+				timer.Dispose();
+			};
+			timer.Start();
+		}
+
 		private void SaveUndoState()
 		{
 			if (this.drawingBitmap == null) return;
@@ -808,6 +893,7 @@ namespace ScreenCaptureApp
 		private Button shapesButton;
 		private ContextMenuStrip shapesMenu;
 		private Button magnifierButton;
+		private Button ocrButton;
 		private Button closeButton;
 		private Panel toolbarPanel;
 		private ToolTip toolTip;
