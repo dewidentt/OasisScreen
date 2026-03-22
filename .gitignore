@@ -9,8 +9,9 @@ obj/
 *.pdb
 
 ## NuGet
-packages/
 *.nupkg
+
+## Keep packages/ (Tesseract DLLs + tessdata) tracked
 
 ## OS
 Thumbs.db

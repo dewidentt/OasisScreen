@@ -1,42 +1,35 @@
 using System;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Threading.Tasks;
-using Windows.Graphics.Imaging;
-using Windows.Media.Ocr;
-using Windows.Storage;
+using Tesseract;
 
 namespace ScreenCaptureApp
 {
-	internal static class OcrHelper
-	{
-		public static async Task<string> RecognizeTextAsync(Bitmap bitmap)
-		{
-			var engine = OcrEngine.TryCreateFromUserProfileLanguages();
-			if (engine == null)
-				return null;
+internal static class OcrHelper
+{
+public static Task<string> RecognizeTextAsync(Bitmap bitmap)
+{
+return Task.Run(() => RecognizeText(bitmap));
+}
 
-			string tempPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N") + ".png");
-			try
-			{
-				bitmap.Save(tempPath, ImageFormat.Png);
+private static string RecognizeText(Bitmap bitmap)
+{
+string tessDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tessdata");
+if (!Directory.Exists(tessDataPath))
+throw new DirectoryNotFoundException("Папка tessdata не найдена рядом с exe");
 
-				var file = await StorageFile.GetFileFromPathAsync(tempPath);
-				using (var stream = await file.OpenReadAsync())
-				{
-					var decoder = await BitmapDecoder.CreateAsync(stream);
-					var softwareBitmap = await decoder.GetSoftwareBitmapAsync(
-						BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
-
-					var ocrResult = await engine.RecognizeAsync(softwareBitmap);
-					return ocrResult?.Text;
-				}
-			}
-			finally
-			{
-				try { File.Delete(tempPath); } catch { }
-			}
-		}
-	}
+using (var engine = new TesseractEngine(tessDataPath, "eng", EngineMode.Default))
+{
+using (var pix = PixConverter.ToPix(bitmap))
+{
+using (var page = engine.Process(pix))
+{
+string text = page.GetText();
+return string.IsNullOrWhiteSpace(text) ? null : text.Trim();
+}
+}
+}
+}
+}
 }

@@ -9,7 +9,6 @@
     <RootNamespace>Scre</RootNamespace>
     <AssemblyName>OasisScreen</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <TargetPlatformVersion>10.0.22621.0</TargetPlatformVersion>
     <FileAlignment>512</FileAlignment>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>oasis.ico</ApplicationIcon>
@@ -38,11 +37,9 @@
     <Reference Include="System" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Runtime.WindowsRuntime">
-      <HintPath>C:\Program Files (x86)\Microsoft SDKs\NuGetPackages\System.Runtime.WindowsRuntime\4.0.11\ref\netstandard1.2\System.Runtime.WindowsRuntime.dll</HintPath>
-    </Reference>
-    <Reference Include="Windows">
-      <HintPath>C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.22621.0\Windows.winmd</HintPath>
+    <Reference Include="Tesseract">
+      <HintPath>..\packages\Tesseract.dll</HintPath>
+      <Private>true</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -96,4 +93,11 @@
     </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="CopyTesseractFiles" AfterTargets="Build">
+    <Copy SourceFiles="..\packages\x64\leptonica-1.82.0.dll" DestinationFolder="$(OutputPath)x64" />
+    <Copy SourceFiles="..\packages\x64\tesseract50.dll" DestinationFolder="$(OutputPath)x64" />
+    <Copy SourceFiles="..\packages\x86\leptonica-1.82.0.dll" DestinationFolder="$(OutputPath)x86" />
+    <Copy SourceFiles="..\packages\x86\tesseract50.dll" DestinationFolder="$(OutputPath)x86" />
+    <Copy SourceFiles="..\packages\tessdata\eng.traineddata" DestinationFolder="$(OutputPath)tessdata" />
+  </Target>
 </Project>
