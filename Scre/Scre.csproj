@@ -99,5 +99,6 @@
     <Copy SourceFiles="..\packages\x86\leptonica-1.82.0.dll" DestinationFolder="$(OutputPath)x86" />
     <Copy SourceFiles="..\packages\x86\tesseract50.dll" DestinationFolder="$(OutputPath)x86" />
     <Copy SourceFiles="..\packages\tessdata\eng.traineddata" DestinationFolder="$(OutputPath)tessdata" />
+    <Copy SourceFiles="..\packages\tessdata\rus.traineddata" DestinationFolder="$(OutputPath)tessdata" />
   </Target>
 </Project>

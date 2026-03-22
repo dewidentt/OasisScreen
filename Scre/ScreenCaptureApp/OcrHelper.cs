@@ -19,7 +19,7 @@ string tessDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tessd
 if (!Directory.Exists(tessDataPath))
 throw new DirectoryNotFoundException("Папка tessdata не найдена рядом с exe");
 
-using (var engine = new TesseractEngine(tessDataPath, "eng", EngineMode.Default))
+using (var engine = new TesseractEngine(tessDataPath, "eng+rus", EngineMode.Default))
 {
 using (var pix = PixConverter.ToPix(bitmap))
 {
