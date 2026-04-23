@@ -42,9 +42,9 @@ namespace ScreenCaptureApp
 
 			this.trayMenu = new ContextMenuStrip();
 			this.trayMenu.Renderer = new DarkMenuRenderer();
-			this.trayMenu.Items.Add("\u2699  Настройки", null, new EventHandler(this.OnSettingsClick));
+			this.trayMenu.Items.Add("⚙  Настройки", null, new EventHandler(this.OnSettingsClick));
 			this.trayMenu.Items.Add(new ToolStripSeparator());
-			this.trayMenu.Items.Add("\u274C  Выход", null, new EventHandler(this.OnExitClick));
+			this.trayMenu.Items.Add("❌  Выход", null, new EventHandler(this.OnExitClick));
 
 			Icon appIcon;
 			string icoPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "oasis.ico");
@@ -159,12 +159,8 @@ namespace ScreenCaptureApp
 
 		private void OpenScreenshotEditor()
 		{
-			using (Bitmap bitmap = new Bitmap(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height))
+			using (Bitmap bitmap = CaptureAllScreens())
 			{
-				using (Graphics g = Graphics.FromImage(bitmap))
-				{
-					g.CopyFromScreen(0, 0, 0, 0, bitmap.Size);
-				}
 				using (Bitmap darkened = new Bitmap(bitmap.Width, bitmap.Height))
 				{
 					using (Graphics g2 = Graphics.FromImage(darkened))
@@ -185,13 +181,8 @@ namespace ScreenCaptureApp
 
 		private void TakeInstantScreenshot()
 		{
-			using (Bitmap bitmap = new Bitmap(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height))
+			using (Bitmap bitmap = CaptureAllScreens())
 			{
-				using (Graphics g = Graphics.FromImage(bitmap))
-				{
-					g.CopyFromScreen(0, 0, 0, 0, bitmap.Size);
-				}
-
 				string fileName = GetNextFileName(this.lastSavePath);
 				string fullPath = Path.Combine(this.lastSavePath, fileName);
 				bitmap.Save(fullPath, ImageFormat.Png);
@@ -202,9 +193,30 @@ namespace ScreenCaptureApp
 				}
 
 				this.trayIcon.BalloonTipTitle = "OasisScreen";
-				this.trayIcon.BalloonTipText = "\u0421\u043D\u0438\u043C\u043E\u043A \u0441\u043E\u0445\u0440\u0430\u043D\u0451\u043D: " + fileName;
+				this.trayIcon.BalloonTipText = "Снимок сохранён: " + fileName;
 				this.trayIcon.ShowBalloonTip(2000);
 			}
+		}
+
+		private static Bitmap CaptureAllScreens()
+		{
+			Rectangle virtualScreen = Rectangle.Empty;
+			foreach (Screen screen in Screen.AllScreens)
+			{
+				virtualScreen = Rectangle.Union(virtualScreen, screen.Bounds);
+			}
+
+			Bitmap bitmap = new Bitmap(virtualScreen.Width, virtualScreen.Height);
+			using (Graphics g = Graphics.FromImage(bitmap))
+			{
+				foreach (Screen screen in Screen.AllScreens)
+				{
+					int destX = screen.Bounds.X - virtualScreen.X;
+					int destY = screen.Bounds.Y - virtualScreen.Y;
+					g.CopyFromScreen(screen.Bounds.X, screen.Bounds.Y, destX, destY, screen.Bounds.Size);
+				}
+			}
+			return bitmap;
 		}
 
 		private static string GetNextFileName(string folder)
