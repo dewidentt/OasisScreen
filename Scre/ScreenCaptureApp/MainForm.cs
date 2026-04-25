@@ -34,6 +34,23 @@ namespace ScreenCaptureApp
 			this.RegisterHotKeys();
 		}
 
+		// Hide the invisible helper window from Alt+Tab, taskbar and Task Manager "Apps" list.
+		// WS_EX_TOOLWINDOW removes the window from the switcher;
+		// removing WS_EX_APPWINDOW ensures Task Manager classifies the process as "Background process".
+		protected override CreateParams CreateParams
+		{
+			get
+			{
+				const int WS_EX_TOOLWINDOW  = 0x00000080;
+				const int WS_EX_APPWINDOW   = 0x00040000;
+				const int WS_EX_NOACTIVATE  = 0x08000000;
+				CreateParams cp = base.CreateParams;
+				cp.ExStyle |= WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE;
+				cp.ExStyle &= ~WS_EX_APPWINDOW;
+				return cp;
+			}
+		}
+
 		private void InitializeComponents()
 		{
 			base.FormBorderStyle = FormBorderStyle.None;

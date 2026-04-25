@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.3] - 2026-04-26
+
+### Changed
+- **Фоновый процесс** — Приложение теперь отображается в диспетчере задач как фоновый процесс, а не в разделе «Приложения». Невидимое служебное окно скрыто из Alt+Tab и панели задач через флаги `WS_EX_TOOLWINDOW` / `WS_EX_NOACTIVATE`.
+
 ## [1.0.2] - 2026-04-26
 
 ### Fixed
