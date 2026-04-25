@@ -16,7 +16,7 @@ namespace ScreenCaptureApp
 		{
 			this.DoubleBuffered = true;
 			base.FormBorderStyle = FormBorderStyle.None;
-			base.WindowState = FormWindowState.Maximized;
+			base.StartPosition = FormStartPosition.Manual;
 			base.TopMost = true;
 			base.KeyPreview = true;
 			this.BackColor = Color.Black;
@@ -28,6 +28,13 @@ namespace ScreenCaptureApp
 			this.LoadLastSavePath();
 			this.InitializeButtons();
 			this.ResetDrawingState();
+		}
+
+		protected override void OnLoad(EventArgs e)
+		{
+			base.OnLoad(e);
+			Rectangle virtualScreen = SystemInformation.VirtualScreen;
+			this.SetDesktopBounds(virtualScreen.X, virtualScreen.Y, virtualScreen.Width, virtualScreen.Height);
 		}
 
 		protected override void Dispose(bool disposing)
@@ -511,7 +518,13 @@ namespace ScreenCaptureApp
 			int toolbarWidth = this.toolbarPanel.Width;
 			int toolbarHeight = this.toolbarPanel.Height;
 			int margin = 8;
-			Rectangle sb = Screen.FromControl(this).Bounds;
+
+			// Find the screen containing the selection and convert its bounds to form-client coordinates
+			Point selCenter = new Point(
+				this.selectionRect.X + this.selectionRect.Width / 2,
+				this.selectionRect.Y + this.selectionRect.Height / 2);
+			Rectangle screenBounds = Screen.FromPoint(this.PointToScreen(selCenter)).Bounds;
+			Rectangle sb = new Rectangle(this.PointToClient(screenBounds.Location), screenBounds.Size);
 
 			int x = this.selectionRect.Right - toolbarWidth;
 			if (x < sb.Left + margin) x = sb.Left + margin;

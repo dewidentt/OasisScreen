@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-04-26
+
+### Fixed
+- **Multi-monitor overlay** — The screenshot selection form now spans all connected monitors instead of only the primary monitor, allowing region selection across any display
+
 ## [1.0.1] - 2026-04-23
 
 ### Added
